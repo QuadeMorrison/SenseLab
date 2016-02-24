@@ -24,6 +24,9 @@ public class SectionActivity extends AppCompatActivity {
      * @param newData The data to be added
      */
     public void addData(Data newData) {
+        if (data == null)
+            data = new ArrayList<Data>();
+
         data.add(newData);
     }
 
