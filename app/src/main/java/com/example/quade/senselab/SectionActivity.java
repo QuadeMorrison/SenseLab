@@ -1,7 +1,10 @@
 package com.example.quade.senselab;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +18,19 @@ public class SectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_section);
+
+        Intent intent = getIntent();
+        String content = intent.getStringExtra(MainActivity.EXTRA_TITLE);
+
+        TextView tv = new TextView(this);
+        tv.setText(content);
+        LinearLayout layout = (LinearLayout) findViewById(R.id.section_layout);
+        layout.addView(tv);
     }
 
     /**
      * Adds a new data item to the section and refreshes the view so the user may see it.
      *
-     * @author Quade Morrison
      * @param newData The data to be added
      */
     public void addData(Data newData) {
@@ -33,7 +43,6 @@ public class SectionActivity extends AppCompatActivity {
     /**
      * Adds a new data item to the section and refreshes the view so the user may see it.
      *
-     * @author Quade Morrison
      * @param index Index of Data in list of Data to be changed
      */
     public void updateData(int index) {
@@ -43,7 +52,6 @@ public class SectionActivity extends AppCompatActivity {
     /**
      * Returns the list of data items
      *
-     * @author Quade Morrison
      * @return List The list of data
      */
     public List<Data> getData() {

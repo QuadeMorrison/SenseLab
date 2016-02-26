@@ -1,52 +1,80 @@
 package com.example.quade.senselab;
-
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
-public class MainActivity extends AppCompatActivity {
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.drive.DriveApi.MetadataBufferResult;
+
+public class MainActivity extends BaseDriveActivity {
+
+    public final static String EXTRA_TITLE = "com.example.quade.senselab.TITLE";
+
+    private ListView mResultsListView;
+    private ResultsAdapter mResultsAdapter;
+    private SenseLab senseLab;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        super.onConnected(connectionHint);
+        new createSenseLabFolder().execute(getGoogleApiClient());
+    }
+
+    private class createSenseLabFolder extends AsyncTask<GoogleApiClient, Void, Void> {
+        protected Void doInBackground(GoogleApiClient... googleApiClient) {
+            senseLab = new SenseLab(getGoogleApiClient());
+            senseLab.getFolder().queryForChildren(fillListCallback);
+            return null;
+        }
+    }
+
+    final private ResultCallback<MetadataBufferResult> fillListCallback = new
+            ResultCallback<MetadataBufferResult>() {
+                @Override
+                public void onResult(MetadataBufferResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Problem while retrieving files");
+                        return;
+                    }
+
+                    initilizeListView(result);
+                    setListClickListener();
+                }
+            };
+
+    private void initilizeListView(MetadataBufferResult result) {
+        mResultsListView = (ListView) findViewById(R.id.labReportList);
+        mResultsAdapter = new ResultsAdapter(this);
+        mResultsListView.setAdapter(mResultsAdapter);
+        mResultsAdapter.append(result.getMetadataBuffer());
+    }
+
+    private void setListClickListener() {
+        mResultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String title = mResultsAdapter.getItem(position).getTitle();
+
+                Intent intent = new Intent(getBaseContext(), SectionActivity.class);
+                intent.putExtra(EXTRA_TITLE, title);
+
+                startActivity(intent);
             }
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    public void toLabReportCreationWizard(View view) {
+        Intent intent = new Intent(getBaseContext(), CreateLabReportActivity.class);
+        startActivity(intent);
     }
 }
