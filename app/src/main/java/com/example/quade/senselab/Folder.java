@@ -1,6 +1,5 @@
 package com.example.quade.senselab;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
@@ -19,16 +18,19 @@ public class Folder {
 
     private String name;
     private DriveId driveId;
-    private GoogleApiClient googleApiClient;
+    private GoogleDriveSingleton googleDrive = GoogleDriveSingleton.getInstance();
 
-    public Folder(String name, GoogleApiClient googleApiClient) {
-        this.name = name;
-        this.googleApiClient = googleApiClient;
+    public Folder(String aName) {
+        name = aName;
         doesFolderExist();
     }
 
-    public DriveId getTheDriveId() {
-        System.out.print(driveId + "\n");
+    public Folder(String aName, DriveId aDriveId) {
+        name = aName;
+        driveId = aDriveId;
+    }
+
+    public DriveId getDriveId() {
        return driveId;
     }
 
@@ -39,8 +41,8 @@ public class Folder {
     public void initializeFolder() {
         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                 .setTitle(name).build();
-        Drive.DriveApi.getRootFolder(googleApiClient).createFolder(
-                googleApiClient, changeSet).setResultCallback(initializeFolderCallback);
+        Drive.DriveApi.getRootFolder(googleDrive.getGoogleApiClient()).createFolder(
+                googleDrive.getGoogleApiClient(), changeSet).setResultCallback(initializeFolderCallback);
     }
 
     /**
@@ -63,7 +65,7 @@ public class Folder {
      * the folder.
      */
     private void doesFolderExist() {
-        DriveApi.MetadataBufferResult result = Drive.DriveApi.query(googleApiClient, getFolderQuery()).await();
+        DriveApi.MetadataBufferResult result = Drive.DriveApi.query(googleDrive.getGoogleApiClient(), getFolderQuery()).await();
 
         if (!result.getStatus().isSuccess()) {
             //showMessage("Cannot create folder in the root.");
@@ -101,16 +103,30 @@ public class Folder {
 
     }
 
-    public void queryForChildren(ResultCallback<DriveApi.MetadataBufferResult> metadataCallback) {
+    static abstract public class queryForChildrenCallback {
+        public void onListChildren(DriveApi.MetadataBufferResult result) { }
+    }
+
+    public void queryForChildren(final queryForChildrenCallback callback) {
         DriveFolder folder = driveId.asDriveFolder();
-        folder.listChildren(googleApiClient).setResultCallback(metadataCallback);
+
+        folder.listChildren(googleDrive.getGoogleApiClient())
+                .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+                    @Override
+                    public void onResult(DriveApi.MetadataBufferResult result) {
+                        if (!result.getStatus().isSuccess()) {
+                            //showMessage("Problem while trying to retrieve folder children");
+                        }
+                        callback.onListChildren(result);
+                    }
+                });
     }
 
     public void createFolder(String name) {
         DriveFolder folder = driveId.asDriveFolder();
         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                 .setTitle(name).build();
-        folder.createFolder(googleApiClient, changeSet)
+        folder.createFolder(googleDrive.getGoogleApiClient(), changeSet)
                 .setResultCallback(createFolderCallback);
     }
 

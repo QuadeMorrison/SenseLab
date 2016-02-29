@@ -4,19 +4,19 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.drive.DriveApi.MetadataBufferResult;
+import com.google.android.gms.drive.DriveApi;
 
 public class MainActivity extends BaseDriveActivity {
 
     public final static String EXTRA_TITLE = "com.example.quade.senselab.TITLE";
+    public final static String EXTRA_DRIVEID = "com.example.quade.senselab.DRIVEID";
 
     private ListView mResultsListView;
     private ResultsAdapter mResultsAdapter;
-    private SenseLab senseLab;
+    private SenseLab senseLab = null;
 
     @Override
     public void onCreate(Bundle bundle) {
@@ -27,32 +27,38 @@ public class MainActivity extends BaseDriveActivity {
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
-        new createSenseLabFolder().execute(getGoogleApiClient());
-    }
+        Button newLabReport = (Button) findViewById(R.id.lab_report_button);
+        newLabReport.setVisibility(View.VISIBLE);
 
-    private class createSenseLabFolder extends AsyncTask<GoogleApiClient, Void, Void> {
-        protected Void doInBackground(GoogleApiClient... googleApiClient) {
-            senseLab = new SenseLab(getGoogleApiClient());
-            senseLab.getFolder().queryForChildren(fillListCallback);
-            return null;
+        class InitializeSenseLab extends AsyncTask<Void, Void, Void> {
+            protected Void doInBackground(Void... Void) {
+                initializeGoogleDriveSingleton();
+                senseLab = new SenseLab();
+
+                listLabReports();
+                return null;
+            }
         }
+
+        new InitializeSenseLab().execute();
     }
 
-    final private ResultCallback<MetadataBufferResult> fillListCallback = new
-            ResultCallback<MetadataBufferResult>() {
-                @Override
-                public void onResult(MetadataBufferResult result) {
-                    if (!result.getStatus().isSuccess()) {
-                        showMessage("Problem while retrieving files");
-                        return;
-                    }
+    private void initializeGoogleDriveSingleton() {
+        GoogleDriveSingleton GoogleDrive = GoogleDriveSingleton.getInstance();
+        GoogleDrive.setGoogleApiClient(getGoogleApiClient());
+    }
 
-                    initilizeListView(result);
-                    setListClickListener();
-                }
-            };
+    private void listLabReports() {
+        senseLab.getFolder().queryForChildren(new Folder.queryForChildrenCallback() {
+            @Override
+            public void onListChildren(DriveApi.MetadataBufferResult result) {
+                initilizeListView(result);
+                setListClickListener();
+            }
+        });
+    }
 
-    private void initilizeListView(MetadataBufferResult result) {
+    private void initilizeListView(DriveApi.MetadataBufferResult result) {
         mResultsListView = (ListView) findViewById(R.id.labReportList);
         mResultsAdapter = new ResultsAdapter(this);
         mResultsListView.setAdapter(mResultsAdapter);
@@ -68,13 +74,19 @@ public class MainActivity extends BaseDriveActivity {
                 Intent intent = new Intent(getBaseContext(), SectionActivity.class);
                 intent.putExtra(EXTRA_TITLE, title);
 
+                getGoogleApiClient().disconnect();
                 startActivity(intent);
             }
         });
     }
 
     public void toLabReportCreationWizard(View view) {
-        Intent intent = new Intent(getBaseContext(), CreateLabReportActivity.class);
-        startActivity(intent);
+        if (senseLab != null) {
+            Intent intent = new Intent(getBaseContext(), CreateLabReportActivity.class);
+            intent.putExtra(EXTRA_DRIVEID, senseLab.getFolder().getDriveId().encodeToString());
+
+            getGoogleApiClient().disconnect();
+            startActivity(intent);
+        }
     }
 }

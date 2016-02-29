@@ -4,12 +4,12 @@ package com.example.quade.senselab;
  * Created by Quade on 2/19/16.
  */
 import android.content.Context;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.TextView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
-        import com.google.android.gms.drive.Metadata;
-        import com.google.android.gms.drive.widget.DataBufferAdapter;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.widget.DataBufferAdapter;
 
 /**
  * A DataBufferAdapter to display the results of file listing/querying requests.

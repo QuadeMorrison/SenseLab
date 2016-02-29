@@ -10,7 +10,7 @@ public class SensorActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sensor);
+        //setContentView(R.layout.activity_sensor);
     }
 
     //the clearSensorData class erases all the data that the sensor contains within it
