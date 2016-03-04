@@ -1,5 +1,7 @@
 package com.cs246.senselab;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +19,12 @@ public class CreationWizardActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_creation_wizard);
+
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(android.R.id.content, new TitleCreationWizardFragment());
+        fragmentTransaction.commit();
+
         Intent intent = getIntent();
         finishCreation = (Button) findViewById(R.id.finish_creation_button);
         nameField = (EditText) findViewById(R.id.name_of_field);
