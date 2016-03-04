@@ -1,4 +1,4 @@
-package com.example.quade.senselab;
+package com.cs246.senselab;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
