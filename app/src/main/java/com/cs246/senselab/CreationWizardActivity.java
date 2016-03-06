@@ -20,19 +20,16 @@ public class CreationWizardActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_creation_wizard);
 
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(android.R.id.content, new TitleCreationWizardFragment());
-        fragmentTransaction.commit();
-
         Intent intent = getIntent();
-        finishCreation = (Button) findViewById(R.id.finish_creation_button);
-        nameField = (EditText) findViewById(R.id.name_of_field);
 
         provider.connect(new StorageProvider.ConnectCallback() {
             @Override
             public void onConnect(StorageProvider provider) {
+
                 provider.setFolder(folderName, folderId);
+
+                nameField = (EditText) findViewById(R.id.name_of_field);
+                finishCreation = (Button) findViewById(R.id.finish_creation_button);
 
                 finishCreation.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -61,12 +58,10 @@ public class CreationWizardActivity extends BaseActivity {
         intent.putExtra(EXTRA_FOLDERNAME, folderName);
         intent.putExtra(EXTRA_DISPLAYDATA, displayData);
         System.out.print(folderId);
-        System.out.print("Outside\n");
 
-        provider.getFolder().createSubFolderAsync(name, new Folder.CreateFolderCallback() {
+        provider.getFolder().createSubFolderAsync(name, new Folder.CreateFileCallback() {
             @Override
             public void onCreate() {
-                System.out.print("Inside\n");
                 startActivity(intent);
             }
         });

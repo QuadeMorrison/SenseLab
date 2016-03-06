@@ -19,4 +19,11 @@ public interface StorageProvider {
     void onResume();
     void onPause();
     Folder getFolder();
+
+    interface FileAccessCallback {
+        void onResult(String contents);
+    }
+
+    void readFileAsync(String id, final FileAccessCallback callback);
+    void writeToFileAsync(String id, final String contents, final FileAccessCallback callback);
 }

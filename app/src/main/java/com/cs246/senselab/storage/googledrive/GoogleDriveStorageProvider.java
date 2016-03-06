@@ -10,8 +10,11 @@ import com.cs246.senselab.storage.Folder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.Metadata;
@@ -19,6 +22,11 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 /**
  * Collection of methods that use the Google Drive API to store data in the form of folders and files
@@ -102,6 +110,57 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         }
     }
 
+    @Override
+    public void readFileAsync(String fileId, final FileAccessCallback callback) {
+        DriveFile file = DriveId.decodeFromString(fileId).asDriveFile();
+        file.open(mClient.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
+                .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
+                    @Override
+                    public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
+                        try {
+                            DriveContents contents = driveContentsResult.getDriveContents();
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(contents.getInputStream()));
+                            StringBuilder builder = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                builder.append(line);
+                            }
+                            String contentsAsString = builder.toString();
+                            callback.onResult(contentsAsString);
+
+                            contents.discard(mClient.getGoogleApiClient());
+                        } catch (IOException e) {
+                            System.out.println(e);
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void writeToFileAsync(String fileId, final String contents, final FileAccessCallback callback) {
+        DriveFile file = DriveId.decodeFromString(fileId).asDriveFile();
+        file.open(mClient.getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null)
+                .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
+                    @Override
+                    public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
+                        try {
+                            DriveContents driveContents = driveContentsResult.getDriveContents();
+                            OutputStream outputStream = driveContents.getOutputStream();
+                            outputStream.write(contents.getBytes());
+                            driveContents.commit(mClient.getGoogleApiClient(), null)
+                                    .setResultCallback(new ResultCallback<Status>() {
+                                        @Override
+                                        public void onResult(Status status) {
+                                            callback.onResult(contents);
+                                        }
+                                    });
+                        } catch (IOException e) {
+                            System.out.println(e);
+                        }
+                    }
+                });
+    }
+
     public GoogleDriveFolder getFolder() { return folder; }
 
     private final GoogleDriveStorageProvider getThis() { return this; }
@@ -122,7 +181,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         }
 
         @Override
-        protected void initialize(final CreateFolderCallback callback) {
+        protected void initialize(final CreateFileCallback callback) {
            if (mId == null) {
                Drive.DriveApi.query(mClient.getGoogleApiClient(), getFolderQuery())
                        .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
@@ -169,7 +228,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
             return isFound;
         }
 
-        private void createFolder(final CreateFolderCallback callback) {
+        private void createFolder(final CreateFileCallback callback) {
             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                     .setTitle(mName).build();
             Drive.DriveApi.getRootFolder(mClient.getGoogleApiClient())
@@ -185,7 +244,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
         @Override
         public void listChildrenAsync(final ListChildrenCallback callback) {
-            initialize(new CreateFolderCallback() {
+            initialize(new CreateFileCallback() {
                 @Override
                 public void onCreate() {
                     DriveFolder folder = DriveId.decodeFromString(mId).asDriveFolder();
@@ -205,20 +264,42 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         }
 
         @Override
-        public void createSubFolderAsync(final String aName, final CreateFolderCallback callback) {
-            initialize(new CreateFolderCallback() {
+        public void createSubFolderAsync(final String aName, final CreateFileCallback callback) {
+            initialize(new CreateFileCallback() {
                 @Override
                 public void onCreate() {
                     MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                             .setTitle(aName).build();
                     DriveFolder parent = DriveId.decodeFromString(mId).asDriveFolder();
                     parent.createFolder(mClient.getGoogleApiClient(), changeSet)
-                    .setResultCallback(new ResultCallback<DriveFolder.DriveFolderResult>() {
-                        @Override
-                        public void onResult(DriveFolder.DriveFolderResult driveFolderResult) {
-                            callback.onCreate();
-                        }
-                    });
+                            .setResultCallback(new ResultCallback<DriveFolder.DriveFolderResult>() {
+                                @Override
+                                public void onResult(DriveFolder.DriveFolderResult driveFolderResult) {
+                                    callback.onCreate();
+                                }
+                            });
+                }
+            });
+        }
+
+        @Override
+        public void createFileAsync(final String aName, final CreateFileCallback callback) {
+            initialize(new CreateFileCallback() {
+                @Override
+                public void onCreate() {
+                    MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                            .setTitle(aName)
+                            .setMimeType("text/plain")
+                            .build();
+
+                    DriveFolder parent = DriveId.decodeFromString(mId).asDriveFolder();
+                    parent.createFile(mClient.getGoogleApiClient(), changeSet, null)
+                            .setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
+                                @Override
+                                public void onResult(DriveFolder.DriveFileResult driveFileResult) {
+                                    callback.onCreate();
+                                }
+                            });
                 }
             });
         }

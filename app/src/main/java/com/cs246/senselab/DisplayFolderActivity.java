@@ -71,16 +71,38 @@ public class DisplayFolderActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String newFolderId = adapter.getIdList().get(position);
                 String newFolderName = adapter.getNameList().get(position);
-                String newDataType = "Section";
+                String newDisplayData = getDisplayData();
+                Class whereToGo = DisplayFolderActivity.class;
 
-                Intent intent = new Intent(getBaseContext(), DisplayFolderActivity.class);
+                if (newDisplayData.equals("Section Data")) {
+                   whereToGo = DisplaySectionActivity.class;
+                }
+
+                Intent intent = new Intent(getBaseContext(), whereToGo);
                 intent.putExtra(EXTRA_FOLDERID, newFolderId);
                 intent.putExtra(EXTRA_FOLDERNAME, newFolderName);
-                intent.putExtra(EXTRA_DISPLAYDATA, newDataType);
+                intent.putExtra(EXTRA_DISPLAYDATA, newDisplayData);
 
                 startActivity(intent);
             }
         });
+    }
+
+    private String getDisplayData() {
+        String newDisplayData = null;
+
+        switch (displayData) {
+            case "Lab Report":
+                newDisplayData = "Section";
+                break;
+            case "Section" :
+                newDisplayData = "Section Data";
+                break;
+            default:
+                newDisplayData = "Lab Report";
+        }
+
+        return newDisplayData;
     }
 
     public void toCreationWizardClickListener(View v) {
