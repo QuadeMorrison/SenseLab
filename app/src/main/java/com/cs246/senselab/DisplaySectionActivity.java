@@ -74,11 +74,12 @@ public class DisplaySectionActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
 
-                createTextField(null);
-
                 provider.getFolder().createFileAsync("textField", new Folder.CreateFileCallback() {
                     @Override
-                    public void onCreate() { }
+                    public void onCreate() {
+
+                        createTextField(null);
+                    }
                 });
             }
         });
@@ -166,17 +167,19 @@ public class DisplaySectionActivity extends BaseActivity {
         }
 
         public void readFileContentsAsync() {
-            provider.readFileAsync(mId, new StorageProvider.FileAccessCallback() {
-                @Override
-                public void onResult(String contents) {
-                    mContent = contents;
-                    if (!mContent.equals("")) {
-                        mTextView.setText(mContent);
-                    } else {
-                        mTextView.setText(mDefaultContent);
+            if (mId != null) {
+                provider.readFileAsync(mId, new StorageProvider.FileAccessCallback() {
+                    @Override
+                    public void onResult(String contents) {
+                        mContent = contents;
+                        if (!mContent.equals("")) {
+                            mTextView.setText(mContent);
+                        } else {
+                            mTextView.setText(mDefaultContent);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         public void finishEditing() {
