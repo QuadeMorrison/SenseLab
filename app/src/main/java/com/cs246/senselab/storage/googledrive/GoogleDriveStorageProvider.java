@@ -37,6 +37,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
     private GoogleDriveClient mClient = null;
     private GoogleDriveFolder folder = null;
     private static final String TAG = GoogleDriveStorageProvider.class.getName();
+    private static final String TAG = GoogleDriveStorageProvider.class.getSimpleName();
 
     public GoogleDriveStorageProvider(Activity aActivity) {
         mActivity = aActivity;
@@ -53,7 +54,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
         @Override
         public void onConnectionFailed(ConnectionResult result) {
-            System.out.print("Connection Failed\n");
+            Log.d(TAG, "Connection failed");
             if (result.hasResolution()) {
                 try {
                     result.startResolutionForResult(mActivity, 1);
@@ -66,7 +67,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
         public void build() {
             if (mGoogleApiClient == null) {
-                mGoogleApiClient = new GoogleApiClient.Builder((Context) mActivity)
+                mGoogleApiClient = new GoogleApiClient.Builder(mActivity)
                         .addApi(Drive.API)
                         .addScope(Drive.SCOPE_FILE)
                         .addConnectionCallbacks(this)
@@ -118,7 +119,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         if(fileId == null) {
             Log.d(TAG, "The FileID does not exist.");
         }
-        
+
         DriveFile file = DriveId.decodeFromString(fileId).asDriveFile();
         file.open(mClient.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
                 .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
