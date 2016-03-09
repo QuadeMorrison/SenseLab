@@ -4,6 +4,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,7 +15,7 @@ import com.cs246.senselab.storage.Folder;
 public class CreationWizardActivity extends BaseActivity {
     private Button finishCreation = null;
     private EditText nameField = null;
-
+    private static final String TAG = CreationWizardActivity.class.getName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +64,7 @@ public class CreationWizardActivity extends BaseActivity {
             @Override
             public void onCreate() {
                 startActivity(intent);
+                Log.d(TAG, "The data folder was created.");
             }
         });
     }

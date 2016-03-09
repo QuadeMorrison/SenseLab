@@ -3,6 +3,7 @@ package com.cs246.senselab;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -14,9 +15,12 @@ import com.cs246.senselab.storage.StorageProvider;
 import com.cs246.senselab.storage.googledrive.DriveChildrenAdapter;
 import com.cs246.senselab.storage.Folder;
 
+
+
 public class DisplayFolderActivity extends BaseActivity {
     private Context context = this;
     private ChildrenAdapter mChildrenAdapter = null;
+    private static final String TAG = DisplayFolderActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +105,7 @@ public class DisplayFolderActivity extends BaseActivity {
             default:
                 newDisplayData = "Lab Report";
         }
-
+        Log.d(TAG,"The new data type is " + newDisplayData);
         return newDisplayData;
     }
 

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.cs246.senselab.storage.StorageProvider;
 import com.cs246.senselab.storage.Folder;
@@ -35,6 +36,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
     private Activity mActivity = null;
     private GoogleDriveClient mClient = null;
     private GoogleDriveFolder folder = null;
+    private static final String TAG = GoogleDriveStorageProvider.class.getName();
 
     public GoogleDriveStorageProvider(Activity aActivity) {
         mActivity = aActivity;
@@ -112,6 +114,11 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
     @Override
     public void readFileAsync(String fileId, final FileAccessCallback callback) {
+
+        if(fileId == null) {
+            Log.d(TAG, "The FileID does not exist.");
+        }
+        
         DriveFile file = DriveId.decodeFromString(fileId).asDriveFile();
         file.open(mClient.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
                 .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
