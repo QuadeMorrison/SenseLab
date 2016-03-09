@@ -2,6 +2,7 @@ package com.cs246.senselab;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -19,10 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DisplaySectionActivity extends BaseActivity {
-    Button addTextField = null;
-    LinearLayout layout = null;
-    Context mContext = this;
-    List<TextField> textFields = null;
+    private Button addTextField = null;
+    private LinearLayout layout = null;
+    private Context mContext = this;
+    private List<TextField> textFields = null;
+    private static final String TAG = DisplaySectionActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +79,7 @@ public class DisplaySectionActivity extends BaseActivity {
                 provider.getFolder().createFileAsync("textField", new Folder.CreateFileCallback() {
                     @Override
                     public void onCreate() {
-
+                        Log.d(TAG, "File created");
                         createTextField(null);
                     }
                 });
@@ -177,6 +179,7 @@ public class DisplaySectionActivity extends BaseActivity {
                         } else {
                             mTextView.setText(mDefaultContent);
                         }
+                        Log.d(TAG, "File successfully read");
                     }
                 });
             }

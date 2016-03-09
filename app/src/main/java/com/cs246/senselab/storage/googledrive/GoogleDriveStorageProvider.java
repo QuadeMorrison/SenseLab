@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.cs246.senselab.storage.StorageProvider;
 import com.cs246.senselab.storage.Folder;
@@ -35,6 +36,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
     private Activity mActivity = null;
     private GoogleDriveClient mClient = null;
     private GoogleDriveFolder folder = null;
+    private static final String TAG = GoogleDriveStorageProvider.class.getSimpleName();
 
     public GoogleDriveStorageProvider(Activity aActivity) {
         mActivity = aActivity;
@@ -51,7 +53,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
         @Override
         public void onConnectionFailed(ConnectionResult result) {
-            System.out.print("Connection Failed\n");
+            Log.d(TAG, "Connection failed");
             if (result.hasResolution()) {
                 try {
                     result.startResolutionForResult(mActivity, 1);
@@ -64,7 +66,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
         public void build() {
             if (mGoogleApiClient == null) {
-                mGoogleApiClient = new GoogleApiClient.Builder((Context) mActivity)
+                mGoogleApiClient = new GoogleApiClient.Builder(mActivity)
                         .addApi(Drive.API)
                         .addScope(Drive.SCOPE_FILE)
                         .addConnectionCallbacks(this)
