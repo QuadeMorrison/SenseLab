@@ -36,7 +36,6 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
     private Activity mActivity = null;
     private GoogleDriveClient mClient = null;
     private GoogleDriveFolder folder = null;
-    private static final String TAG = GoogleDriveStorageProvider.class.getName();
     private static final String TAG = GoogleDriveStorageProvider.class.getSimpleName();
 
     public GoogleDriveStorageProvider(Activity aActivity) {
