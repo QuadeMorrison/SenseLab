@@ -26,8 +26,8 @@ public class DisplayFolderActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_folder);
-
-        provider.connect(new StorageProvider.ConnectCallback() {
+        provider.connect(new StorageProvider.ConnectCallback()
+        {
             @Override
             public void onConnect(StorageProvider provider) {
                 initializeAddDataTypeButton();

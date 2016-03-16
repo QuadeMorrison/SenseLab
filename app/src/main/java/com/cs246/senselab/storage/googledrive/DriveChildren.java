@@ -26,6 +26,11 @@ public class DriveChildren implements Children<DriveApi.MetadataBufferResult> {
         mChildren = aChildren;
     }
 
+    /**
+     * Returns a list of the names of the children
+     *
+     * @return Children Names
+     */
     @Override
     public List<String> getNames() {
         MetadataBuffer children = mChildren.getMetadataBuffer();
@@ -42,6 +47,11 @@ public class DriveChildren implements Children<DriveApi.MetadataBufferResult> {
         return names;
     }
 
+    /**
+     * Returns a list of the ids that represent the children on the google drive
+     *
+     * @return Children Ids
+     */
     @Override
     public List<String> getIds() {
         MetadataBuffer children = mChildren.getMetadataBuffer();

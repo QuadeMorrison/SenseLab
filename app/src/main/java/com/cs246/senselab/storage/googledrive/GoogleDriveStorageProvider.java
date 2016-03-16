@@ -38,19 +38,42 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
     private GoogleDriveFolder folder = null;
     private static final String TAG = GoogleDriveStorageProvider.class.getSimpleName();
 
+    /**
+     * Constructor
+     *
+     * @param aActivity
+     */
     public GoogleDriveStorageProvider(Activity aActivity) {
         mActivity = aActivity;
     }
 
+    /**
+     * Google Client used to interface with the API. Contains the required methods to connect to the Google Drive
+     */
     private class GoogleDriveClient implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
         private GoogleApiClient mGoogleApiClient = null;
 
+        /**
+         * All the code written within this function will run when the client connects to the drive
+         *
+         * @param connectionHint
+         */
         @Override
         public void onConnected(Bundle connectionHint) { }
 
+        /**
+         * All the code written within this function will run if the connection is interupted
+         *
+         * @param cause
+         */
         @Override
         public void onConnectionSuspended(int cause) { }
 
+        /**
+         * Code will run if a connection can't be made
+         *
+         * @param result
+         */
         @Override
         public void onConnectionFailed(ConnectionResult result) {
             Log.d(TAG, "Connection failed");
@@ -64,6 +87,9 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
             }
         }
 
+        /**
+         * Creates the Google Api Client, and requests to connect with it
+         */
         public void build() {
             if (mGoogleApiClient == null) {
                 mGoogleApiClient = new GoogleApiClient.Builder(mActivity)
@@ -79,6 +105,12 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         public GoogleApiClient getGoogleApiClient() { return mGoogleApiClient; }
     }
 
+    /**
+     * Specify the folder that the storage provider represents
+     *
+     * @param aName Given name of the folder
+     * @param aId The ID that represents this folder within the Drive API
+     */
     @Override
     public void setFolder(String aName, String aId) {
         if (folder == null) {
@@ -86,6 +118,12 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         }
     }
 
+    /**
+     * When called issues request to connect to Google Drive Client
+     *
+     * @param callback The code specified in the onConnect method within this callback is run upon
+     *                 connection to the client
+     */
     @Override
     public void connect(final ConnectCallback callback) {
         if (mClient == null) {
@@ -98,6 +136,9 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         }
     }
 
+    /**
+     * Intended to be called in the activities onPause method
+     */
     @Override
     public void onPause() {
        if (mClient != null) {
@@ -105,6 +146,9 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
        }
     }
 
+    /**
+     * Intended to be called in the activities onResume method
+     */
     @Override
     public void onResume() {
         if (mClient != null) {
@@ -112,6 +156,12 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
         }
     }
 
+    /**
+     * Opens the file on the users Google Drive and retrieves the files contents
+     *
+     * @param fileId Id that Google Drive refers to the file
+     * @param callback The onResult method passes the file contents to the user
+     */
     @Override
     public void readFileAsync(String fileId, final FileAccessCallback callback) {
 
@@ -143,6 +193,13 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
                 });
     }
 
+    /**
+     * Overwrites the contents of a given file with a given string
+     *
+     * @param fileId Id of the file that is to be overwritten
+     * @param contents String to write to file
+     * @param callback Passes written contents back to the user
+     */
     @Override
     public void writeToFileAsync(String fileId, final String contents, final FileAccessCallback callback) {
         DriveFile file = DriveId.decodeFromString(fileId).asDriveFile();
@@ -170,23 +227,50 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
 
     public GoogleDriveFolder getFolder() { return folder; }
 
+    /**
+     * Used to refer to this within nested classes
+     *
+     * @return this
+     */
     private final GoogleDriveStorageProvider getThis() { return this; }
 
+    /**
+     * Holds methods for operating on folders using the Google Drive API
+     */
     public class GoogleDriveFolder extends Folder {
 
+        /**
+         * Do not allow the user to initialize a folder without a name
+         */
         private GoogleDriveFolder() { }
 
-        public GoogleDriveFolder(String aName) {
+        /**
+         * Initialize with folder name. Folder may or may not already exist on the drive
+         *
+         * @param name Name of folder to be created
+         */
+        public GoogleDriveFolder(String name) {
             super();
-            mName = aName;
+            mName = name;
         }
 
-        public GoogleDriveFolder(String aName, String aId) {
+        /**
+         * Initialize with folder name and id of folder that already exists within the google drive.
+         *
+         * @param name Name of the folder
+         * @param id Id that google drive refers to folder as
+         */
+        public GoogleDriveFolder(String name, String id) {
             super();
-            mName = aName;
-            mId = aId;
+            mName = name;
+            mId = id;
         }
 
+        /**
+         * Checks if folder exists or not, and either creates it if it does not, or retrieves the id
+         *
+         * @param callback
+         */
         @Override
         protected void initialize(final CreateFileCallback callback) {
            if (mId == null) {
@@ -212,6 +296,11 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
            }
         }
 
+        /**
+         * Retrieves the query to search for folder
+         *
+         * @return A query to find the folder on the users drive
+         */
         private Query getFolderQuery() {
           return new Query.Builder()
                   .addFilter(Filters.and(Filters.eq(
@@ -220,6 +309,12 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
                   .build();
         }
 
+        /**
+         * Searches for the folder based on the retrieved contents from the users drive
+         *
+         * @param result All the files and folders found within a folder on the users Google Drive
+         * @return true if folder is found, false otherwise
+         */
         private boolean doesExist(DriveApi.MetadataBufferResult result) {
             boolean isFound = false;
 
@@ -235,6 +330,11 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
             return isFound;
         }
 
+        /**
+         * Creates the folder that is to represent the StorageProvider
+         *
+         * @param callback Allows the user to specify a method to do work after the folder is created
+         */
         private void createFolder(final CreateFileCallback callback) {
             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                     .setTitle(mName).build();
@@ -249,6 +349,11 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
                     });
         }
 
+        /**
+         * Retrieves data about all the children of the folder represented by this
+         *
+         * @param callback Allows the user to specify a method to do work after the children have been listed
+         */
         @Override
         public void listChildrenAsync(final ListChildrenCallback callback) {
             initialize(new CreateFileCallback() {
@@ -270,6 +375,12 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
             });
         }
 
+        /**
+         * Create a folder within the current folder represented by this
+         *
+         * @param aName The name of the sub-folder to be created
+         * @param callback Allows the user to specify a method to do work after the folder has been created
+         */
         @Override
         public void createSubFolderAsync(final String aName, final CreateFileCallback callback) {
             initialize(new CreateFileCallback() {
@@ -289,6 +400,12 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
             });
         }
 
+        /**
+         * Create a file within the current folder represented by this
+         *
+         * @param aName The name of the file to be created
+         * @param callback Allows the user to specify a method to do work after the file has been created
+         */
         @Override
         public void createFileAsync(final String aName, final CreateFileCallback callback) {
             initialize(new CreateFileCallback() {

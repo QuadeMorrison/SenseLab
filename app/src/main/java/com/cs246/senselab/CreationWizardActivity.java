@@ -1,7 +1,5 @@
 package com.cs246.senselab;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +10,9 @@ import android.widget.EditText;
 import com.cs246.senselab.storage.StorageProvider;
 import com.cs246.senselab.storage.Folder;
 
+/**
+ * Activity that handles the creation of different parts of the lab reports
+ */
 public class CreationWizardActivity extends BaseActivity {
     private Button finishCreation = null;
     private EditText nameField = null;
@@ -45,6 +46,9 @@ public class CreationWizardActivity extends BaseActivity {
 
     }
 
+    /**
+     * Changes button and hint to represent the part of the lab report being created
+     */
     private void setDisplay() {
         nameField.setHint("Enter the name of the " + displayData);
         nameField.setVisibility(View.VISIBLE);
@@ -52,6 +56,11 @@ public class CreationWizardActivity extends BaseActivity {
         finishCreation.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Retrieves name of datatype to be created, and creates it
+     *
+     * @param v Create DataType button
+     */
     private void createDataTypeClickHandler(View v) {
         String name = nameField.getText().toString();
         final Intent intent = new Intent(this, DisplayFolderActivity.class);
