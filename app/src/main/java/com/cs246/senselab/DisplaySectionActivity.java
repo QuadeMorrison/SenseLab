@@ -1,6 +1,7 @@
 package com.cs246.senselab;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
+import com.cs246.senselab.model.TextField;
 import com.cs246.senselab.storage.Children;
 import com.cs246.senselab.storage.Folder;
 import com.cs246.senselab.storage.StorageProvider;
@@ -74,7 +76,7 @@ public class DisplaySectionActivity extends BaseActivity {
             textFields = new ArrayList<>();
         }
 
-        TextField textField = new TextField("Click to edit", id);
+        TextField textField = new TextField(this, provider, "Click to edit", id);
         textField.readFileContentsAsync();
         layout.addView(textField.getViewSwitcher());
         setEditTextFieldListener(textField);
@@ -93,9 +95,9 @@ public class DisplaySectionActivity extends BaseActivity {
 
                 provider.getFolder().createFileAsync("textField", new Folder.CreateFileCallback() {
                     @Override
-                    public void onCreate() {
+                    public void onCreate(String id) {
                         Log.d(TAG, "File created");
-                        createTextField(null);
+                        createTextField(id);
                     }
                 });
             }
@@ -142,142 +144,13 @@ public class DisplaySectionActivity extends BaseActivity {
         }
     }
 
-    /**
-     * An editable text field. The data to be stored on the StorageProvider
-     */
-    private class TextField {
-        private String mContent = null;
-        private String mDefaultContent = null;
-        private EditText mEditText = null;
-        private TextView mTextView = null;
-        private ViewSwitcher mViewSwitcher = null;
-        private String mId = null;
-        private boolean isBeingEdited = false;
-
-        /**
-         * Don't let the field be initialized without content
-         */
-        private TextField() { }
-
-        /**
-         * Constructor
-         *
-         * @param content The content to be displayed when the text field is empty
-         * @param id Id that represents TextField on the StorageProvider
-         */
-        public TextField(String content, String id) {
-            mDefaultContent = content;
-            mContent = content;
-            mId = id;
-            initializeEditText();
-            initializeTextView();
-            initializeViewSwitcher();
-        }
-
-        /**
-         * Initialize the non-editable textview for the gui
-         */
-        private void initializeTextView() {
-            mTextView = new TextView(mContext);
-            setDimensions(mTextView);
-            mTextView.setClickable(true);
-            mTextView.setText(mContent);
-        }
-
-        /**
-         * Initialize the editable view for the gui
-         */
-        private void initializeEditText() {
-            mEditText = new EditText(mContext);
-            setDimensions(mEditText);
-        }
-
-        /**
-         * Initialize the view switcher to switch between the textview and the the editable view
-         */
-        private void initializeViewSwitcher() {
-            mViewSwitcher = new ViewSwitcher(mContext);
-            setDimensions(mViewSwitcher);
-            mViewSwitcher.addView(mTextView);
-            mViewSwitcher.addView(mEditText);
-        }
-
-        /**
-         * Set views dimensions on the gui
-         *
-         * @param v View who's dimensions are to be set
-         */
-        private void setDimensions(View v) {
-            v.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            ));
-        }
-
-        /**
-         * Switches the non-editable view, to the editable view and pulls up android keyboard
-         */
-        public void edit() {
-            mViewSwitcher.showNext();
-            mEditText.requestFocusFromTouch();
-            InputMethodManager lManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
-            lManager.showSoftInput(mEditText, 0);
-            isBeingEdited = true;
-        }
-
-        /**
-         * Gets the file contents from file stored on Storage Provider
-         */
-        public void readFileContentsAsync() {
-            if (mId != null) {
-                provider.readFileAsync(mId, new StorageProvider.FileAccessCallback() {
-                    @Override
-                    public void onResult(String contents) {
-                        mContent = contents;
-                        if (!mContent.equals("")) {
-                            mTextView.setText(mContent);
-                        } else {
-                            mTextView.setText(mDefaultContent);
-                        }
-                        Log.d(TAG, "File successfully read");
-                    }
-                });
-            }
-        }
-
-        /**
-         * Save textfields contents to file stored on the StorageProvider and switched to non-editable
-         * view
-         */
-        public void finishEditing() {
-            String newContent = mEditText.getText().toString();
-            if (!newContent.equals("")) {
-                mContent = mEditText.getText().toString();
-            } else {
-                mContent = mDefaultContent;
-            }
-
-            mTextView.setText(mContent);
-            provider.writeToFileAsync(mId, mContent, new StorageProvider.FileAccessCallback() {
-                @Override
-                public void onResult(String contents) {
-                    isBeingEdited = false;
-                    mViewSwitcher.showNext();
-                }
-            });
-        }
-
-        public String getId() { return mId; }
-
-        /**
-         * Returns whether or not the textfield is currently being edited
-         *
-         * @return True if being edited, false otherwise
-         */
-        public boolean isBeingEdited() { return isBeingEdited; }
-
-        public TextView getTextView() { return mTextView; }
-
-        public ViewSwitcher getViewSwitcher() { return mViewSwitcher; }
+    public void collectDataHandler(View view) {
+        Intent intent = new Intent(this, ScanActivity.class);
+        intent.putExtra(EXTRA_FOLDERNAME, folderName);
+        intent.putExtra(EXTRA_FOLDERID, folderId);
+        intent.putExtra(EXTRA_DISPLAYDATA, displayData);
+        startActivity(intent);
     }
+
+
 }

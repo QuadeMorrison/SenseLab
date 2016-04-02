@@ -69,7 +69,7 @@ public class CreationWizardActivity extends BaseActivity {
         intent.putExtra(EXTRA_DISPLAYDATA, displayData);
         System.out.print(folderId);
 
-        provider.getFolder().createSubFolderAsync(name, new Folder.CreateFileCallback() {
+        provider.getFolder().createSubFolderAsync(name, new Folder.CreateFolderCallback() {
             @Override
             public void onCreate() {
                 startActivity(intent);

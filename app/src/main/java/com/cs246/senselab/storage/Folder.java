@@ -13,8 +13,15 @@ public abstract class Folder {
     /**
      * Callback to do work during certain stages of the Async process of creating a folder
      */
+    public interface  CreateFolderCallback {
+        void onCreate();
+    }
+
+    /**
+     * Callback to do work during certain stages of the Async process of creating a file
+     */
     public interface CreateFileCallback {
-        void onCreate(); // When folder creation is complete
+        void onCreate(String id); // When folder creation is complete
     }
 
     /**
@@ -25,8 +32,8 @@ public abstract class Folder {
         void onChildrenListed(Children children);
     }
 
-    protected abstract void initialize(CreateFileCallback callback);
+    protected abstract void initialize(CreateFolderCallback callback);
     public abstract void listChildrenAsync(ListChildrenCallback callback);
-    public abstract void createSubFolderAsync(final String name, final CreateFileCallback callback);
+    public abstract void createSubFolderAsync(final String name, final CreateFolderCallback callback);
     public abstract void createFileAsync(final String name, final CreateFileCallback callback);
 }

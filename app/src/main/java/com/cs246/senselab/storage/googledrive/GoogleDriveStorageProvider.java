@@ -272,7 +272,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
          * @param callback
          */
         @Override
-        protected void initialize(final CreateFileCallback callback) {
+        protected void initialize(final CreateFolderCallback callback) {
            if (mId == null) {
                Drive.DriveApi.query(mClient.getGoogleApiClient(), getFolderQuery())
                        .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
@@ -335,7 +335,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
          *
          * @param callback Allows the user to specify a method to do work after the folder is created
          */
-        private void createFolder(final CreateFileCallback callback) {
+        private void createFolder(final CreateFolderCallback callback) {
             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                     .setTitle(mName).build();
             Drive.DriveApi.getRootFolder(mClient.getGoogleApiClient())
@@ -356,7 +356,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
          */
         @Override
         public void listChildrenAsync(final ListChildrenCallback callback) {
-            initialize(new CreateFileCallback() {
+            initialize(new CreateFolderCallback() {
                 @Override
                 public void onCreate() {
                     DriveFolder folder = DriveId.decodeFromString(mId).asDriveFolder();
@@ -382,8 +382,8 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
          * @param callback Allows the user to specify a method to do work after the folder has been created
          */
         @Override
-        public void createSubFolderAsync(final String aName, final CreateFileCallback callback) {
-            initialize(new CreateFileCallback() {
+        public void createSubFolderAsync(final String aName, final CreateFolderCallback callback) {
+            initialize(new CreateFolderCallback() {
                 @Override
                 public void onCreate() {
                     MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
@@ -408,7 +408,7 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
          */
         @Override
         public void createFileAsync(final String aName, final CreateFileCallback callback) {
-            initialize(new CreateFileCallback() {
+            initialize(new CreateFolderCallback() {
                 @Override
                 public void onCreate() {
                     MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
@@ -421,7 +421,8 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
                             .setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
                                 @Override
                                 public void onResult(DriveFolder.DriveFileResult driveFileResult) {
-                                    callback.onCreate();
+                                    String id = driveFileResult.getDriveFile().getDriveId().encodeToString();
+                                    callback.onCreate(id);
                                 }
                             });
                 }
