@@ -11,10 +11,26 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.cs246.senselab.DisplaySectionActivity">
 
-    <Button
-        android:id="@+id/add_text_field"
-        android:text="Add text field"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/add_text_field"
+            android:text="Add text field"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/collect_data"
+            android:text="COLLECT DATA"
+            android:layout_weight="1"
+            android:onClick="collectDataHandler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 
 </LinearLayout>
