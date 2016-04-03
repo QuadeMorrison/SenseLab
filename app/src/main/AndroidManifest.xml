@@ -22,10 +22,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CreationWizardActivity" />
         <activity android:name=".DisplaySectionActivity" />
         <activity android:name=".ScanActivity" />
-        <activity android:name=".CollectDataActivity"></activity>
+        <activity android:name=".CollectDataActivity" />
+        <activity android:name=".AddDataActivity" />
+        <activity android:name=".ChooseSensorActivity"></activity>
     </application>
 
 </manifest>

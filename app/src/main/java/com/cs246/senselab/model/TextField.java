@@ -93,6 +93,7 @@ public class TextField {
      * Switches the non-editable view, to the editable view and pulls up android keyboard
      */
     public void edit() {
+        mEditText.setText(mContent);
         mViewSwitcher.showNext();
         mEditText.requestFocusFromTouch();
         InputMethodManager lManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -103,12 +104,23 @@ public class TextField {
     /**
      * Gets the file contents from file stored on Storage Provider
      */
-    public void readFileContentsAsync() {
+    public void readFileContentsAsync(final String append) {
         if (mId != null) {
+            mTextView.setText("Loading contents...");
             mProvider.readFileAsync(mId, new StorageProvider.FileAccessCallback() {
                 @Override
                 public void onResult(String contents) {
                     mContent = contents;
+                    if (append != null) {
+                        if (mContent != "") {
+                            mContent += " " + append;
+                        } else {
+                            mContent = append;
+                        }
+
+                        setText(mContent);
+                    }
+
                     if (!mContent.equals("")) {
                         mTextView.setText(mContent);
                     } else {
@@ -125,6 +137,9 @@ public class TextField {
      * view
      */
     public void finishEditing() {
+        InputMethodManager lManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
+        lManager.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+
         String newContent = mEditText.getText().toString();
         if (!newContent.equals("")) {
             mContent = mEditText.getText().toString();
@@ -133,13 +148,30 @@ public class TextField {
         }
 
         mTextView.setText(mContent);
-        mProvider.writeToFileAsync(mId, mContent, new StorageProvider.FileAccessCallback() {
-            @Override
-            public void onResult(String contents) {
-                isBeingEdited = false;
-                mViewSwitcher.showNext();
+        if (!mContent.equals(mDefaultContent)) {
+            mProvider.writeToFileAsync(mId, mContent, new StorageProvider.FileAccessCallback() {
+                @Override
+                public void onResult(String contents) {
+                    isBeingEdited = false;
+                    mViewSwitcher.showNext();
+                }
+            });
+        }
+    }
+
+    public void setText(String contents) {
+        if (!contents.equals("")) {
+            mContent = contents;
+            mTextView.setText(mContent);
+
+            if (!mContent.equals(mDefaultContent)) {
+                mProvider.writeToFileAsync(mId, mContent, new StorageProvider.FileAccessCallback() {
+                    @Override
+                    public void onResult(String contents) {
+                    }
+                });
             }
-        });
+        }
     }
 
     public String getId() { return mId; }

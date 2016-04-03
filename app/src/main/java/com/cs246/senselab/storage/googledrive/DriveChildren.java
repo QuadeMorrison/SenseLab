@@ -13,9 +13,13 @@ import java.util.List;
  */
 public class DriveChildren implements Children<DriveApi.MetadataBufferResult> {
     DriveApi.MetadataBufferResult mChildren = null;
+    private List<String> names;
+    private List<String> ids;
 
     public DriveChildren(DriveApi.MetadataBufferResult aChildren) {
         mChildren = aChildren;
+        MetadataBuffer children = mChildren.getMetadataBuffer();
+        initialize(children);
     }
 
     public DriveApi.MetadataBufferResult getChildren() {
@@ -26,16 +30,7 @@ public class DriveChildren implements Children<DriveApi.MetadataBufferResult> {
         mChildren = aChildren;
     }
 
-    /**
-     * Returns a list of the names of the children
-     *
-     * @return Children Names
-     */
-    @Override
-    public List<String> getNames() {
-        MetadataBuffer children = mChildren.getMetadataBuffer();
-        List<String> names = null;
-
+    private void initialize(MetadataBuffer children) {
         if (names == null) {
             names = new ArrayList<>();
         }
@@ -44,18 +39,6 @@ public class DriveChildren implements Children<DriveApi.MetadataBufferResult> {
             names.add(m.getTitle());
         }
 
-        return names;
-    }
-
-    /**
-     * Returns a list of the ids that represent the children on the google drive
-     *
-     * @return Children Ids
-     */
-    @Override
-    public List<String> getIds() {
-        MetadataBuffer children = mChildren.getMetadataBuffer();
-        List<String> ids = null;
 
         if (ids == null) {
             ids = new ArrayList<>();
@@ -64,7 +47,21 @@ public class DriveChildren implements Children<DriveApi.MetadataBufferResult> {
         for (Metadata m : children) {
             ids.add(m.getDriveId().encodeToString());
         }
-
-        return ids;
     }
+
+    /**
+     * Returns a list of the names of the children
+     *
+     * @return Children Names
+     */
+    @Override
+    public List<String> getNames() { return names; }
+
+    /**
+     * Returns a list of the ids that represent the children on the google drive
+     *
+     * @return Children Ids
+     */
+    @Override
+    public List<String> getIds() { return ids; }
 }

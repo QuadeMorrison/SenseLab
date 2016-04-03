@@ -4,7 +4,7 @@ package com.cs246.ble.sensortag.service;
  * Created by Quade on 3/19/16.
  */
 public class AmbientTempService extends SensortagService {
-    private static final String SERVICE_NAME = "Ambient Temperature";
+    private static final String SERVICE_NAME = "Temperature";
 
     public AmbientTempService() {
         super();

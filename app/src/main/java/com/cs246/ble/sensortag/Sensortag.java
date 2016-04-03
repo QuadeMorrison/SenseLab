@@ -12,6 +12,7 @@ import android.util.Log;
 import com.cs246.ble.BleService;
 import com.cs246.ble.GenericBleDevice;
 import com.cs246.ble.sensortag.service.AmbientTempService;
+import com.cs246.ble.sensortag.service.HumidityService;
 import com.cs246.ble.sensortag.service.SensortagService;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class Sensortag implements GenericBleDevice {
         }
 
         services.add(new AmbientTempService());
+        services.add(new HumidityService());
     }
 
     @Override

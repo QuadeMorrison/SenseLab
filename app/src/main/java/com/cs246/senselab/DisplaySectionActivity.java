@@ -1,7 +1,9 @@
 package com.cs246.senselab;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,10 +12,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
 import com.cs246.senselab.model.TextField;
+import com.cs246.senselab.model.TextTable;
 import com.cs246.senselab.storage.Children;
 import com.cs246.senselab.storage.Folder;
 import com.cs246.senselab.storage.StorageProvider;
@@ -26,10 +31,12 @@ import java.util.List;
  */
 public class DisplaySectionActivity extends BaseActivity {
     private Button addTextField = null;
-    private LinearLayout layout = null;
-    private Context mContext = this;
+    private TableLayout tableLayout = null;
     private List<TextField> textFields = null;
     private static final String TAG = DisplaySectionActivity.class.getName();
+    private String sensorData;
+    private String fileToPutSensorDataId;
+    private final Activity ACTIVITY = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,12 +46,41 @@ public class DisplaySectionActivity extends BaseActivity {
         provider.connect(new StorageProvider.ConnectCallback() {
             @Override
             public void onConnect(StorageProvider provider) {
-                layout = (LinearLayout) findViewById(R.id.section_data_layout);
+                setParentFolder();
+                tableLayout = (TableLayout) findViewById(R.id.section_data_tablelayout);
                 addTextField = (Button) findViewById(R.id.add_text_field);
                 addTextFieldListener();
                 getSectionData();
+                checkForSensorData();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, DisplayFolderActivity.class);
+        intent.putExtra(EXTRA_FOLDERNAME, parentName);
+        intent.putExtra(EXTRA_FOLDERID, parentId);
+        intent.putExtra(EXTRA_DISPLAYDATA, parentDisplayData);
+        startActivity(intent);
+    }
+
+    private void checkForSensorData() {
+        Intent intent = getIntent();
+        if (intent.hasExtra(EXTRA_DATA)) {
+            sensorData = intent.getStringExtra(EXTRA_DATA);
+            fileToPutSensorDataId = intent.getStringExtra(EXTRA_DATA_FILE_ID);
+
+            if (fileToPutSensorDataId == null) {
+                provider.getFolder().createFileAsync("textField", new Folder.CreateFileCallback() {
+                    @Override
+                    public void onCreate(String id) {
+                        Log.d(TAG, "File created");
+                        createTextField(id, sensorData);
+                    }
+                });
+            }
+        }
     }
 
     /**
@@ -54,12 +90,23 @@ public class DisplaySectionActivity extends BaseActivity {
         provider.getFolder().listChildrenAsync(new Folder.ListChildrenCallback() {
             @Override
             public void onChildrenListed(Children children) {
-                List<String> ids = children.getIds();
+                if (textFields == null) {
+                    List<String> ids = children.getIds();
+                    List<String> names = children.getNames();
 
-                if (ids != null) {
+                    for (String name : names) {
+                        System.out.println(name);
+                    }
 
-                    for (String id : ids) {
-                        createTextField(id);
+                    if (ids != null) {
+
+                        for (int i = 0; i < ids.size(); ++i) {
+                            if (names.get(i).equals("textField")) {
+                                createTextField(ids.get(i));
+                            } else {
+                                createTextTable(ids.get(i), names.get(i));
+                            }
+                        }
                     }
                 }
             }
@@ -77,10 +124,48 @@ public class DisplaySectionActivity extends BaseActivity {
         }
 
         TextField textField = new TextField(this, provider, "Click to edit", id);
-        textField.readFileContentsAsync();
-        layout.addView(textField.getViewSwitcher());
+
+        if (id.equals(fileToPutSensorDataId)) {
+            textField.readFileContentsAsync(sensorData);
+        } else {
+            textField.readFileContentsAsync(null);
+        }
+        tableLayout.addView(textField.getViewSwitcher());
         setEditTextFieldListener(textField);
         setLayoutClickListener();
+
+        textFields.add(textField);
+    }
+
+    private void createTextTable(final String id, String name) {
+        final TextTable textTable = new TextTable(this, id, name, provider);
+        textTable.readFileContentsAsync(new TextTable.TextTableCallback() {
+            @Override
+            public void onResult() {
+                TextView textView = new TextView(ACTIVITY);
+
+                if (id.equals(fileToPutSensorDataId)) {
+                    textTable.addData(sensorData);
+                }
+
+                textView.setText(textTable.makeTable());
+                textView.setTypeface(Typeface.MONOSPACE);
+                tableLayout.addView(textView);
+            }
+        });
+    }
+
+    private void createTextField(String id, String content) {
+        if (textFields == null) {
+            textFields = new ArrayList<>();
+        }
+
+        TextField textField = new TextField(this, provider, "Click to edit", id);
+        textField.setText(content);
+        tableLayout.addView(textField.getViewSwitcher());
+        setEditTextFieldListener(textField);
+        setLayoutClickListener();
+
         textFields.add(textField);
     }
 
@@ -109,13 +194,17 @@ public class DisplaySectionActivity extends BaseActivity {
      * edited, is saved on the drive.
      */
     private void setLayoutClickListener() {
-        layout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finishEditing();
-            }
-        });
+        LinearLayout layout = (LinearLayout) findViewById(R.id.section_data_layout);
+        layout.setOnClickListener(finishEditingClickListener);
+        tableLayout.setOnClickListener(finishEditingClickListener);
     }
+
+    private View.OnClickListener finishEditingClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            finishEditing();
+        }
+    };
 
     /**
      * Changes the clicked text field into it's editable version

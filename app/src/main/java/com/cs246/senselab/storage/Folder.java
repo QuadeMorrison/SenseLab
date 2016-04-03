@@ -32,8 +32,18 @@ public abstract class Folder {
         void onChildrenListed(Children children);
     }
 
+    /**
+     * Callback to do work during certain stages of the Async process of listing a folder's
+     * children
+     */
+    public interface ListParentsCallback {
+        void onParentsListed(String parent, String id);
+    }
+
     protected abstract void initialize(CreateFolderCallback callback);
-    public abstract void listChildrenAsync(ListChildrenCallback callback);
+    public abstract void listChildrenAsync(final ListChildrenCallback callback);
+    public abstract void listChildrenAsync(final String folderId, final ListChildrenCallback callback);
+    public abstract void listParentsAsync(ListParentsCallback callback);
     public abstract void createSubFolderAsync(final String name, final CreateFolderCallback callback);
     public abstract void createFileAsync(final String name, final CreateFileCallback callback);
 }

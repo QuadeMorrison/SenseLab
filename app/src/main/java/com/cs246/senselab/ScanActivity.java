@@ -1,6 +1,7 @@
 package com.cs246.senselab;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import com.cs246.ble.BleDeviceManager;
 import com.cs246.ble.BleScanner;
+import com.cs246.ble.BleService;
 import com.cs246.ble.ConnectedDevice;
 import com.cs246.ble.GenericBleDevice;
 import com.cs246.ble.sensortag.SensortagScanner;
@@ -26,7 +28,7 @@ import java.util.List;
 public class ScanActivity extends BaseActivity {
 
     private final Activity ACTIVITY = this;
-    private static final String[] FILTERS = { "CC2650", "SensoryTag" };
+    private static final String[] FILTERS = { "CC2650", "SensorTag" };
     private BluetoothAdapter mBluetoothAdapter;
     private BleScanner mBleScanner;
     private final static int REQUEST_ENABLE_BT = 1;
@@ -51,9 +53,18 @@ public class ScanActivity extends BaseActivity {
                     }
                 });
 
-        if (mBleScanner.isConnection()) {
-            redirectCollectDataActivity();
+        if (ConnectedDevice.getInstance().getDevice() != null) {
+            redirectChooseSensorActivity();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, DisplaySectionActivity.class);
+        intent.putExtra(EXTRA_FOLDERNAME, folderName);
+        intent.putExtra(EXTRA_FOLDERID, folderId);
+        intent.putExtra(EXTRA_DISPLAYDATA, displayData);
+        startActivity(intent);
     }
 
     private void updateDeviceList(GenericBleDevice device) {
@@ -73,20 +84,31 @@ public class ScanActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final GenericBleDevice device = mDevices.get(position);
+                ProgressDialog prog = new ProgressDialog(ACTIVITY);
+                prog.setIndeterminate(true);
+                prog.setCancelable(false);
+                prog.setMessage((String) "Connecting to " + device.getName() + "...");
+                prog.show();
+
                 device.connect(ACTIVITY, new GenericBleDevice.DeviceCallback() {
                     @Override
                     public void onConnect() {
                         mBleScanner.stop();
                         ConnectedDevice.getInstance().setDevice(device);
-                        redirectCollectDataActivity();
+
+                        for (BleService service : device.getServices()) {
+                            System.out.println("SCAN ACTIVITY: " + service.getName());
+                        }
+
+                        redirectChooseSensorActivity();
                     }
                 });
             }
         });
     }
 
-    private void redirectCollectDataActivity() {
-        Intent intent = new Intent(this, CollectDataActivity.class);
+    private void redirectChooseSensorActivity() {
+        Intent intent = new Intent(this, ChooseSensorActivity.class);
         intent.putExtra(EXTRA_FOLDERNAME, folderName);
         intent.putExtra(EXTRA_FOLDERID, folderId);
         intent.putExtra(EXTRA_DISPLAYDATA, displayData);

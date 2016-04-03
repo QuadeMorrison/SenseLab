@@ -19,6 +19,7 @@ import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
@@ -368,7 +369,62 @@ public final class GoogleDriveStorageProvider implements StorageProvider {
                                     if (!result.getStatus().isSuccess()) {
                                         //showMessage("Problem while trying to retrieve folder children");
                                     }
+
                                     callback.onChildrenListed(new DriveChildren(result));
+                                }
+                            });
+                }
+            });
+        }
+
+        @Override
+        public void listChildrenAsync(final String folderId, final ListChildrenCallback callback) {
+            initialize(new CreateFolderCallback() {
+                @Override
+                public void onCreate() {
+                    DriveFolder folder = DriveId.decodeFromString(folderId).asDriveFolder();
+
+                    folder.listChildren(mClient.getGoogleApiClient())
+                            .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+                                @Override
+                                public void onResult(DriveApi.MetadataBufferResult result) {
+                                    if (!result.getStatus().isSuccess()) {
+                                        //showMessage("Problem while trying to retrieve folder children");
+                                    }
+                                    callback.onChildrenListed(new DriveChildren(result));
+                                }
+                            });
+                }
+            });
+        }
+
+        @Override
+        public void listParentsAsync(final ListParentsCallback callback) {
+            initialize(new CreateFolderCallback() {
+                @Override
+                public void onCreate() {
+                    DriveFolder folder = DriveId.decodeFromString(mId).asDriveFolder();
+
+                    folder.listParents(mClient.getGoogleApiClient())
+                            .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+                                @Override
+                                public void onResult(DriveApi.MetadataBufferResult result) {
+                                    if (!result.getStatus().isSuccess()) {
+                                        //showMessage("Problem while trying to retrieve folder children");
+                                    }
+
+                                    MetadataBuffer metadata = result.getMetadataBuffer();
+                                    String folderName = null;
+                                    String folderId = null;
+
+                                    for (Metadata m : metadata) {
+                                        folderName = m.getTitle();
+                                        folderId = m.getDriveId().encodeToString();
+                                    }
+
+                                    callback.onParentsListed(folderName, folderId);
+
+                                    result.release();
                                 }
                             });
                 }

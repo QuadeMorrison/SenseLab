@@ -12,5 +12,9 @@ public class ServiceGatt {
 
             AMB_TMP_SERV = fromString("f000aa00-0451-4000-b000-000000000000"),
             AMB_TMP_DATA = fromString("f000aa01-0451-4000-b000-000000000000"),
-            AMB_TMP_CONF = fromString("f000aa02-0451-4000-b000-000000000000");
+            AMB_TMP_CONF = fromString("f000aa02-0451-4000-b000-000000000000"),
+
+            HUMIDITY_SERV = fromString("f000aa20-0451-4000-b000-000000000000"),
+            HUMIDITY_DATA = fromString("f000aa21-0451-4000-b000-000000000000"),
+            HUMIDITY_CONF = fromString("f000aa22-0451-4000-b000-000000000000");
 }
